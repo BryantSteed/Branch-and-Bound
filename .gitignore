@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 *.html
+*.pytest_cache/
+.DS_Store
+debug_bb.txt

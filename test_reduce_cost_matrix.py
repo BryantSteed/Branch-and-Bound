@@ -2,6 +2,10 @@
 import numpy as np
 import math
 from reduced_cost import calculate_reduced_cost
+from tsp_solve import branch_and_bound
+from tsp_core import Timer
+
+
 def test_reduced_cost_matrix_1():
     cost_matrix = np.array([
         [math.inf, 7, 3, 12],
@@ -46,3 +50,20 @@ def test_reduced_cost_matrix_2():
 
 
 # Add more tests as necessary...
+
+def test_branch_and_bound():
+    """This is just for my own debugging"""
+    cost_matrix = [
+        [math.inf, 7, 3, 12],
+        [3, math.inf, 6, 14],
+        [5, 8, math.inf, 6],
+        [9, 3, 5, math.inf]
+    ]
+    timer = Timer()
+    result = branch_and_bound(cost_matrix, timer)[-1]
+    observed_tour = result.tour
+    observed_score = result.score
+    expected_tour = [0, 2, 3, 1]
+    expected_score = 15
+    assert observed_tour == expected_tour, "Branch and Bound did not find the expected tour"
+    assert observed_score == expected_score, "Branch and Bound did not find the expected score"

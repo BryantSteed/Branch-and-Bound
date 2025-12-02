@@ -62,8 +62,59 @@ def random_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             cut_tree.fraction_leaves_covered()
         )]
 
+class TSPState:
+    def __init__(self, cost_matrix: np.ndarray, path: Tour, cost: float):
+        self.cost_matrix: np.ndarray = cost_matrix
+        self.path: Tour = path
+        self.cost: float = cost
+
 def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
-    return []
+    num_nodes = len(edges[0])
+    stats = []
+    global_best_score = math.inf
+    for start_node in range(num_nodes):
+        path = [start_node]
+        visited = set([start_node])
+        current_node = start_node
+        if timer.time_out():
+            return stats
+        process_start_node_greedy(edges, num_nodes, path, visited, current_node)
+        global_best_score = add_stat_greedy(edges, timer, stats, global_best_score, path)
+    return stats
+
+def process_start_node_greedy(edges, num_nodes, path, visited, current_node):
+    while len(visited) < num_nodes:
+        valid_nodes = set()
+        for node in range(num_nodes):
+            if node not in visited and not math.isinf(edges[current_node][node]):
+                valid_nodes.add(node)
+        if not valid_nodes:
+            break
+        curr_min = math.inf
+        for node in valid_nodes:
+            if edges[current_node][node] < curr_min:
+                curr_min = edges[current_node][node]
+                best_node = node
+        path.append(best_node)
+        visited.add(best_node)
+        current_node = best_node
+
+def add_stat_greedy(edges, timer, stats, global_best_score, path):
+    if len(path) != len(edges):
+        return global_best_score
+    cost = score_tour(path, edges)
+    if cost < global_best_score:
+        global_best_score = cost
+        stat: SolutionStats = SolutionStats(tour=path,
+                                               score=cost,
+                                               time=timer.time(),
+                                               max_queue_size=0,
+                                               n_nodes_expanded=0,
+                                               n_nodes_pruned=0,
+                                               n_leaves_covered=0,
+                                               fraction_leaves_covered=0.0)
+        stats.append(stat)
+    return global_best_score
 
 
 def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
@@ -71,66 +122,73 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    # greedy_solutions = greedy_tour(edges, timer)
+    # bssf = greedy_solutions[-1].score if greedy_solutions else math.inf
     bssf = math.inf
     initial_matrix = np.array(edges)
     initial_tour = [0]
-    for i in range(len(edges)):
-        if i != 0:
-            initial_matrix[0][i] = math.inf
     initial_reduced_matrix , initial_reduction_cost = calculate_reduced_cost(initial_matrix)
-    
     stack = [TSPState(initial_reduced_matrix, initial_tour, initial_reduction_cost)]
     stat_lst = []
     while stack:
         if timer.time_out():
             return stat_lst
         state = stack.pop()
-        child_states = expand_bb_state(state)
-        for child in child_states:
-            if len(child.path) == len(edges):
-                if child.cost < bssf:
-                    bssf = child.cost
-                    stat_lst.append(SolutionStats(
-                        tour=child.path,
-                        score=child.cost,
-                        time=timer.time(),
-                        max_queue_size=0,
-                        n_nodes_expanded=0,
-                        n_nodes_pruned=0,
-                        n_leaves_covered=0,
-                        fraction_leaves_covered=0.0
-                    ))
-            elif child.cost >= bssf:
-                continue
-            else:
-                stack.append(child)
+        if state.cost >= bssf:
+            continue
+        child_states = expand_bb_state(state, bssf)
+        bssf = process_children_bb(child_states, bssf, stat_lst, stack, timer, edges)
     return stat_lst
 
-def expand_bb_state(state: TSPState) -> list[TSPState]:
+def process_children_bb(child_states: list[TSPState], 
+                     bssf: float, 
+                     stat_lst: list[SolutionStats], 
+                     stack: list[TSPState], 
+                     timer: Timer, 
+                     edges: list[list[float]]):
+    for child in child_states:
+        if len(child.path) == len(edges):
+            if child.cost < bssf:
+                bssf = child.cost
+                stat_lst.append(SolutionStats(
+                    tour=child.path,
+                    score=child.cost,
+                    time=timer.time(),
+                    max_queue_size=0,
+                    n_nodes_expanded=0,
+                    n_nodes_pruned=0,
+                    n_leaves_covered=0,
+                    fraction_leaves_covered=0.0
+                ))
+        elif child.cost >= bssf:
+            continue
+        else:
+            stack.append(child)
+    return bssf
+
+def expand_bb_state(state: TSPState, bssf: float) -> list[TSPState]:
     children = []
     visited = set(state.path)
     for i in range(len(state.cost_matrix)):
-        if i in visited:
+        if i in visited or math.isinf(state.cost_matrix[state.path[-1]][i]):
             continue
         new_path = state.path + [i]
+
+        edge_cost = state.cost_matrix[state.path[-1]][i]
+
         new_cost_matrix = state.cost_matrix.copy()
         for j in range(len(new_cost_matrix)):
             new_cost_matrix[state.path[-1]][j] = math.inf
             new_cost_matrix[j][i] = math.inf
         if len(new_path) != len(state.cost_matrix):
             new_cost_matrix[i][new_path[0]] = math.inf
-        new_reduced_matrix , additional_reduction_cost = calculate_reduced_cost(new_cost_matrix)
-        new_cost = state.cost + additional_reduction_cost
-        children.append(TSPState(new_cost_matrix, new_path, new_cost))
-    return children
         
+        new_reduced_matrix , new_reduction_cost = calculate_reduced_cost(new_cost_matrix)
+        new_cost = state.cost + new_reduction_cost + edge_cost
+        children.append(TSPState(new_reduced_matrix, new_path, new_cost))
+    return children
+
 
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return []
-
-class TSPState:
-    def __init__(self, cost_matrix: np.ndarray, path: Tour, cost: float):
-        self.cost_matrix: np.ndarray = cost_matrix
-        self.path: Tour = path
-        self.cost: float = cost
