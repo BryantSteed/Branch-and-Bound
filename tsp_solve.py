@@ -1,8 +1,10 @@
 import math
 import random
+import numpy as np
 
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
+from reduced_cost import calculate_reduced_cost
 
 PARAMS_FOR_SMART_BRANCH_AND_BOUND_SMART_TEST = {
     "n": 30,
@@ -69,8 +71,66 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
-    return []
+    bssf = math.inf
+    initial_matrix = np.array(edges)
+    initial_tour = [0]
+    for i in range(len(edges)):
+        if i != 0:
+            initial_matrix[0][i] = math.inf
+    initial_reduced_matrix , initial_reduction_cost = calculate_reduced_cost(initial_matrix)
+    
+    stack = [TSPState(initial_reduced_matrix, initial_tour, initial_reduction_cost)]
+    stat_lst = []
+    while stack:
+        if timer.time_out():
+            return stat_lst
+        state = stack.pop()
+        child_states = expand_bb_state(state)
+        for child in child_states:
+            if len(child.path) == len(edges):
+                if child.cost < bssf:
+                    bssf = child.cost
+                    stat_lst.append(SolutionStats(
+                        tour=child.path,
+                        score=child.cost,
+                        time=timer.time(),
+                        max_queue_size=0,
+                        n_nodes_expanded=0,
+                        n_nodes_pruned=0,
+                        n_leaves_covered=0,
+                        fraction_leaves_covered=0.0
+                    ))
+            elif child.cost >= bssf:
+                continue
+            else:
+                stack.append(child)
+    return stat_lst
+
+def expand_bb_state(state: TSPState) -> list[TSPState]:
+    children = []
+    visited = set(state.path)
+    for i in range(len(state.cost_matrix)):
+        if i in visited:
+            continue
+        new_path = state.path + [i]
+        new_cost_matrix = state.cost_matrix.copy()
+        for j in range(len(new_cost_matrix)):
+            new_cost_matrix[state.path[-1]][j] = math.inf
+            new_cost_matrix[j][i] = math.inf
+        if len(new_path) != len(state.cost_matrix):
+            new_cost_matrix[i][new_path[0]] = math.inf
+        new_reduced_matrix , additional_reduction_cost = calculate_reduced_cost(new_cost_matrix)
+        new_cost = state.cost + additional_reduction_cost
+        children.append(TSPState(new_cost_matrix, new_path, new_cost))
+    return children
+        
 
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return []
+
+class TSPState:
+    def __init__(self, cost_matrix: np.ndarray, path: Tour, cost: float):
+        self.cost_matrix: np.ndarray = cost_matrix
+        self.path: Tour = path
+        self.cost: float = cost
