@@ -10,7 +10,7 @@ from reduced_cost import calculate_reduced_cost
 PARAMS_FOR_SMART_BRANCH_AND_BOUND_SMART_TEST = {
     "n": 14,
     "euclidean": True,
-    "reduction": 0.3,
+    "reduction": 0.2,
     "normal": False,
     "seed": 310,
     "timeout" : 5
@@ -133,7 +133,6 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     greedy_solutions = greedy_tour(edges, timer)
     bssf = greedy_solutions[-1].score if greedy_solutions else math.inf
-    # bssf = math.inf
     initial_matrix = np.array(edges)
     initial_tour = [0]
     initial_reduced_matrix , initial_reduction_cost = calculate_reduced_cost(initial_matrix)
@@ -196,13 +195,11 @@ def expand_bb_state(state: TSPState, bssf: float) -> list[TSPState]:
         new_reduced_matrix, new_reduction_cost = calculate_reduced_cost(new_cost_matrix)
         new_cost = state.cost + new_reduction_cost + edge_cost
         children.append(TSPState(new_reduced_matrix, new_path, new_cost))
-    # children.sort(key=lambda x: -(x.cost))
     return children
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     greedy_solutions = greedy_tour(edges, timer)
     bssf = greedy_solutions[-1].score if greedy_solutions else math.inf
-    # bssf = math.inf
     initial_matrix = np.array(edges)
     initial_tour = [0]
     initial_reduced_matrix , initial_reduction_cost = calculate_reduced_cost(initial_matrix)
