@@ -8,12 +8,12 @@ from tsp_cuttree import CutTree
 from reduced_cost import calculate_reduced_cost
 
 PARAMS_FOR_SMART_BRANCH_AND_BOUND_SMART_TEST = {
-    "n": 30,
+    "n": 14,
     "euclidean": True,
-    "reduction": 0.2,
+    "reduction": 0.3,
     "normal": False,
-    "seed": 312,
-    "timeout" : 20
+    "seed": 310,
+    "timeout" : 5
 }
 
 def random_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
@@ -191,7 +191,8 @@ def expand_bb_state(state: TSPState, bssf: float) -> list[TSPState]:
             new_cost_matrix[j][i] = math.inf
         if len(new_path) != len(state.cost_matrix):
             new_cost_matrix[i][new_path[0]] = math.inf
-        
+        elif math.isinf(new_cost_matrix[i][new_path[0]]):
+                continue
         new_reduced_matrix, new_reduction_cost = calculate_reduced_cost(new_cost_matrix)
         new_cost = state.cost + new_reduction_cost + edge_cost
         children.append(TSPState(new_reduced_matrix, new_path, new_cost))
@@ -260,7 +261,8 @@ def expand_bbsmart_state(state: TSPState, bssf: float) -> list[TSPState]:
             new_cost_matrix[j][i] = math.inf
         if len(new_path) != len(state.cost_matrix):
             new_cost_matrix[i][new_path[0]] = math.inf
-        
+        elif math.isinf(new_cost_matrix[i][new_path[0]]):
+            continue
         new_reduced_matrix, new_reduction_cost = calculate_reduced_cost(new_cost_matrix)
         new_cost = state.cost + new_reduction_cost + edge_cost
         children.append(TSPState(new_reduced_matrix, new_path, new_cost))

@@ -3,7 +3,7 @@ import numpy as np
 import math
 from typing import Tuple
 
-def calculate_reduced_cost(matrix: np.ndarray) -> Tuple[np.ndarray, int]:
+def calculate_reduced_cost(matrix: np.ndarray) -> Tuple[np.ndarray, float]:
     reduction_modifier = 0
     for i in range(matrix.shape[0]):
         row_min = np.min(matrix[i])
