@@ -4,17 +4,24 @@ import math
 from typing import Tuple
 
 def calculate_reduced_cost(matrix: np.ndarray) -> Tuple[np.ndarray, float]:
-    reduction_modifier = 0
-    for i in range(matrix.shape[0]):
-        row_min = np.min(matrix[i])
-        if row_min > 0 and not math.isinf(row_min):
-            matrix[i] -= row_min
-            reduction_modifier += row_min
+    """
+    Vectorized reduced-cost computation.
+    - If inplace=False, operates on a copy.
+    - Leaves rows/cols that are all inf unchanged.
+    - Only subtracts positive minima (matches original behavior).
+    """
+    # row reduction
+    row_mins = np.min(matrix, axis=1)                     # shape (n_rows,)
+    valid_row = np.isfinite(row_mins) & (row_mins > 0)    # only finite and >0
+    row_vals = np.where(valid_row, row_mins, 0.0)
+    matrix -= row_vals[:, None]
+    reduction_modifier = float(row_vals.sum())
 
-    for j in range(matrix.shape[1]):
-        col_min = np.min(matrix[:, j])
-        if col_min > 0 and not math.isinf(col_min):
-            matrix[:, j] -= col_min
-            reduction_modifier += col_min
-    
+    # column reduction
+    col_mins = np.min(matrix, axis=0)                     # shape (n_cols,)
+    valid_col = np.isfinite(col_mins) & (col_mins > 0)
+    col_vals = np.where(valid_col, col_mins, 0.0)
+    matrix -= col_vals
+    reduction_modifier += float(col_vals.sum())
+
     return matrix, reduction_modifier
