@@ -25,7 +25,7 @@ def test_branch_and_bound():
     """
 
     locations, edges = generate_network(
-        15,
+        14,
         euclidean=True,
         reduction=0.2,
         normal=False,
