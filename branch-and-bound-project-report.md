@@ -275,6 +275,8 @@ To sum up, the stack data structure and the child states list are the most expen
 | 30  |      |          |           |
 | 50  |      |          |           |
 
+Note that I only did the empirical data up to 15 nodes because it would have taken too long otherwise and the TAs said that this was ok.
+
 ### Comparison of Theoretical and Empirical Results
 
 - Empirical order of growth: **O(3.3^n)**
