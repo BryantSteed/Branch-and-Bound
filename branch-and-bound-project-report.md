@@ -308,9 +308,13 @@ My plots should contain the coverage and the number of leaves pruned from the tr
 
 ### Search Space Over Time
 
-![Plot demonstrating search space explored over time]()
+![Plot demonstrating search space explored over time](coverage_over_time.png)
 
-*Fill me in*
+As you can see, the branch and bound algorithm gets astronomically more coverage on the search space over time. You can see that the generic backtracking algorithm from the previous algorithm can only cover a certain amount of the solution space per second.
+
+However, the branch and bound algorithm is able to prune leaves a lot more. This is exactly the reason why we see that the n_leaves_covered numbers accelerate a lot faster for the branch and bound algorithm.
+
+This makes a very meaningful difference because it is able to explore the search space so much faster. Pruning has a huge impact on your ability to traverse the search space quickly.
 
 ## Stretch 2
 
@@ -324,11 +328,55 @@ They said that they were using some weight between the lower bound and the weigh
 
 ### Selected PQ Key
 
-*Fill me in*
+```py
+def __lt__(self, other: 'TSPState') -> bool:
+    len_self = len(self.path)
+    len_other = len(other.path)
+    if len_self == len_other:
+        return self.cost < other.cost
+    return len_self > len_other
+```
+
+This is my implementation of my Priority Queue key. The python heapq module uses the less than < operator so this is how I implemented it.
+
+The idea behind this key was to always prioritize the partial states that are closer to the end. The reasoning behind this is to prevent the algorithm from running a breadth first search, which would be terrible for time complexity.
+
+With that, if the path lengths are the same, then it will prioritize the partial state whose lower bound is more favorable. This allows us to get the best of both worlds because we can run a depth first search but prioritize the most promising paths first.
 
 ### Branch and Bound versus Smart Branch and Bound
 
-*Fill me in*
+I ran both algorithms across 20 different seeds. Heres my results. I ran it with size 10 and gave them 200 milliseconds, which was half the amount needed to find the optimal score.
+
+![img](smart_vs_stupid.png)
+
+As you can see, in every case in which the smart algorithm and the regular algorithm differed, the smart algorithm always retrieved the better score. This clearly shows that using the smart priority queue method is vastly superior to using the naive stack method.
+
+This also validates that the key that I chose was good enough of a key to make it faster than the alternative algorithm.
+
+| Seed | Stupid Score | Smart Score |
+|------|--------------|-------------|
+| 0 | 2.54 | 2.54 |
+| 1 | 3.69 | inf |
+| 2 | 3.01 | 3.01 |
+| 3 | 3.33 | 3.19 |
+| 4 | 3.29 | 3.29 |
+| 5 | 3.79 | 3.70 |
+| 6 | 2.61 | 2.61 |
+| 7 | inf | inf |
+| 8 | inf | inf |
+| 9 | 3.05 | 3.05 |
+| 10 | 3.30 | 3.23 |
+| 11 | 3.68 | 3.68 |
+| 12 | inf | inf |
+| 13 | 2.94 | 2.94 |
+| 14 | inf | inf |
+| 15 | 3.08 | 3.08 |
+| 16 | 3.62 | 3.62 |
+| 17 | 3.23 | 3.23 |
+| 18 | 2.57 | 2.57 |
+| 19 | inf | 2.40 |
+
+Here is the table that shows all the retrieved values. In every instance. Places are marked as infinity if the algorithm was unable to find a solution in the time frame. This further confirms our conclusion that smart branch and bound more efficiently searches the solution space.
 
 ## Project Report 
 
