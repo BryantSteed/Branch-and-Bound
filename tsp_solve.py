@@ -6,6 +6,7 @@ from heapq import heappop, heappush, heapify
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
 from reduced_cost import calculate_reduced_cost
+from typing import Tuple
 
 PARAMS_FOR_SMART_BRANCH_AND_BOUND_SMART_TEST = {
     "n": 14,

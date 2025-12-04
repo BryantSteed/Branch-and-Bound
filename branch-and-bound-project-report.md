@@ -268,21 +268,33 @@ To sum up, the stack data structure and the child states list are the most expen
 
 | N   | Seed | Solution | time (ms) |
 |-----|------|----------|-----------|
-| 5   |      |          |           |
-| 10  |      |          |           |
-| 15  |      |          |           |
+| 5   | 312  |   2.809  |    1.05   |
+| 10  | 312  |   3.376  |  442.93   |
+| 15  | 312  |   3.664  | 244862.06 |
 | 20  |      |          |           |
 | 30  |      |          |           |
 | 50  |      |          |           |
 
 ### Comparison of Theoretical and Empirical Results
 
-- Empirical order of growth: 
-- Measured constant of proportionality: 
+- Empirical order of growth: **O(3.3^n)**
+- Measured constant of proportionality: 0.00321937
 
-![img](img.png)
+![img](core_theoretical_constants.png)
 
-*Fill me in*
+As you can see, the theoretical order of growth constants don't match up very well
+
+![img](core_empirical_constants.png)
+
+These are the empirical constants for O(3.3^n). They match up a lot better. Its clear that my theoretical was a little too pessimistic.
+
+![img](core_runtimes.png)
+
+This confirms that O(3.3^n) is the true time complexity for my implementation. My theoretical was O(3^n * n^3), which is way higher that my observed as you can see.
+
+I think that my theoretical was not off because of how I estimated the branching factor of 3. THe order of exponential growth being very close to three confirms this. Instead, I think that the process of reduction may not have been O(n^2). I understand that numpy does some serious performance optimizations on the vector operations that I used.
+
+I think its clear that the true branching factor is about 3 but that the process of reducing and vetting the child states is not a process that is empirically O(n^3). Instead, its likely closer to O(n) or O(n^1.5) based on the additional 0.3 that we got on the exponential order.
 
 ## Stretch 1 
 
