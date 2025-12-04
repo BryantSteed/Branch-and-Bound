@@ -187,6 +187,10 @@ def expand_path(edges: list[list[float]], path: Tour) -> list[Tour]:
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    cut_tree = CutTree(len(edges))
+    max_stack_size = 1
+    total_partial_states = 1
+    total_partial_states_pruned = 0
     greedy_solutions = greedy_tour(edges, timer)
     bssf = greedy_solutions[-1].score if greedy_solutions else math.inf
     initial_matrix = np.array(edges)
@@ -201,7 +205,10 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         if state.cost >= bssf:
             continue
         child_states = expand_bb_state(state, bssf)
-        bssf = process_children_bb(child_states, bssf, stat_lst, stack, timer, edges)
+        total_partial_states += len(child_states)
+        bssf, max_stack_size, total_partial_states_pruned, total_partial_states = \
+            process_children_bb(child_states, bssf, stat_lst, stack, timer, edges, 
+                                cut_tree, max_stack_size, total_partial_states_pruned, total_partial_states)
     return stat_lst
 
 def process_children_bb(child_states: list[TSPState], 
@@ -209,7 +216,11 @@ def process_children_bb(child_states: list[TSPState],
                      stat_lst: list[SolutionStats], 
                      stack: list[TSPState], 
                      timer: Timer, 
-                     edges: list[list[float]]):
+                     edges: list[list[float]],
+                     cut_tree: CutTree,
+                     max_stack_size: int,
+                     total_partial_states_pruned: int,
+                     total_partial_states: int):
     for child in child_states:
         if len(child.path) == len(edges):
             if child.cost < bssf:
@@ -218,17 +229,20 @@ def process_children_bb(child_states: list[TSPState],
                     tour=child.path,
                     score=child.cost,
                     time=timer.time(),
-                    max_queue_size=0,
-                    n_nodes_expanded=0,
-                    n_nodes_pruned=0,
-                    n_leaves_covered=0,
-                    fraction_leaves_covered=0.0
+                    max_queue_size=max_stack_size,
+                    n_nodes_expanded= total_partial_states,
+                    n_nodes_pruned=total_partial_states_pruned,
+                    n_leaves_covered= cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered= cut_tree.fraction_leaves_covered()
                 ))
         elif child.cost >= bssf:
+            total_partial_states_pruned += 1
+            cut_tree.cut(child.path)
             continue
         else:
             stack.append(child)
-    return bssf
+            max_stack_size = max(max_stack_size, len(stack))
+    return bssf, max_stack_size, total_partial_states_pruned, total_partial_states
 
 def expand_bb_state(state: TSPState, bssf: float) -> list[TSPState]:
     children = []
