@@ -382,5 +382,14 @@ Here is the table that shows all the retrieved values. In every instance. Places
 
 ## Project Report 
 
-*Fill me in*
+Steven Cheng on 12/3/2025
 
+He used nested lists for reduction instead of numpy arrays or 1 dimensional arrays. His time complexity was also n^2 for baseline.
+
+His theoretical and empirical order for core was O(n! * n^2), which was quite different from mine.
+
+For stretch 1, he also saw that his branch and bound was significantly better that the project backtracking algorithm that we implemented. He graph (as mine) showed that the branch and bound algorithm traversed the solution space much more efficiently.
+
+For stretch 2, his key was the current lower bound / depth of the path. I thought that was really cool because it let him weight the best prospective paths. He was that for the most part (with a few exceptions), his smart choice was better than the regular algorithm. This is also what I had observed in my stretch 2 analysis.
+
+All in all, we both thought that the project had exposed us to branch and bound algorithms pretty well. It's interesting to see how powerful narrowing down the search space is.
