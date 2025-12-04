@@ -51,19 +51,3 @@ def test_reduced_cost_matrix_2():
 
 # Add more tests as necessary...
 
-def test_branch_and_bound():
-    """This is just for my own debugging"""
-    cost_matrix = [
-        [math.inf, 7, 3, 12],
-        [3, math.inf, 6, 14],
-        [5, 8, math.inf, 6],
-        [9, 3, 5, math.inf]
-    ]
-    timer = Timer()
-    result = branch_and_bound(cost_matrix, timer)[-1]
-    observed_tour = result.tour
-    observed_score = result.score
-    expected_tour = [0, 2, 3, 1]
-    expected_score = 15
-    assert observed_tour == expected_tour, "Branch and Bound did not find the expected tour"
-    assert observed_score == expected_score, "Branch and Bound did not find the expected score"

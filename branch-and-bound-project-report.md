@@ -78,7 +78,7 @@ We talked about using a stack to traverse the solution space. She stored the par
 
 ### Theoretical Analysis - Branch and Bound TSP
 
-#### Time 
+#### Time **O(3^n * n^3)**
 
 ```py
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]: # O(3^n * n^3)
